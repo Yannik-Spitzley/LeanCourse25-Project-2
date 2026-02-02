@@ -4,8 +4,8 @@
 
 Please fill out the following. Fill in the project topic once you have decided.
 ```
-First & last name:
-Project topic:
+First & last name: Yannik Spitzley
+Project topic: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and generating function
 Partner (optional):
 ```
 
