@@ -404,3 +404,26 @@ theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), ch
 
     -- Step 6:
     _ = catalan (n + 1) := by rw [touchard_identity]
+
+
+
+
+
+-- Catalan Recursion
+private lemma catalan_recurrence (n : ℕ) :
+  (n + 2) * catalan (n + 1) = 2 * (2 * n + 1) * catalan n := by
+
+  -- Express the catalan numbers in terms of the central binomial coefficient
+  rw [catalan_eq_centralBinom_div, catalan_eq_centralBinom_div]
+
+  -- Multiply both sides with n+1
+  apply eq_of_mul_eq_mul_right (succ_pos n)
+
+  -- Rearrange both sides
+  rw [mul_comm _ (n + 1), mul_assoc]
+
+  -- Simplify both sides
+  rw [Nat.mul_div_cancel' (n + 1).succ_dvd_centralBinom, Nat.div_mul_cancel n.succ_dvd_centralBinom]
+
+  -- Use an idendity of the central binomial coefficient
+  rw [succ_mul_centralBinom_succ]
