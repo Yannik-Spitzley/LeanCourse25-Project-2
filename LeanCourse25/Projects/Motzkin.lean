@@ -216,7 +216,7 @@ private lemma simplify_catalan_sum (n : ℕ) : ∀ k ∈ range n,
   to a sum of binomial coefficients and Catalan numbers. -/
 private lemma convolution_identity_closed_form (n : ℕ) :
     ∑ i ∈ range n, motzkin_closed_form i * motzkin_closed_form (n - 1 - i) =
-    ∑ k ∈ range (n / 2 + 1), (choose n (2 * k + 1)) * catalan (k + 1) := by
+    ∑ k ∈ range n, (choose n (2 * k + 1)) * catalan (k + 1) := by
 
   -- Step 1: Unfold the definition.
   unfold motzkin_closed_form
@@ -243,23 +243,6 @@ private lemma convolution_identity_closed_form (n : ℕ) :
   -- Step 7: Simplify the inner sum to the product of a Catalan number and a binomial coefficient.
   rw [sum_congr rfl (simplify_catalan_sum n)]
 
-  -- Step 8: Equalize the summation bounds (ToDo: Is this even necessary?)
-  cases n with
-  | zero => simp
-  | succ n =>
-
-    symm
-    apply sum_subset
-
-    · intro x hx
-      rw [mem_range] at hx ⊢
-      grind
-
-    · intro k hk_in_n hk_not_in_half
-      rw [mem_range, not_lt] at hk_not_in_half
-      have h_too_big : 2 * k + 1 > n + 1 := by grind
-      rw [choose_eq_zero_of_lt h_too_big, zero_mul]
-
 
 
 -- Main theorem 1: Expresses any Motzkin number in terms of the Catalan numbers
@@ -271,11 +254,11 @@ theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := 
     | 0 => simp [motzkin_closed_form] -- Base case n=0
     | (m + 1) => -- Induction step
 
-      -- Step 1: Unfold the definitions and simplify
-      unfold motzkin motzkin_closed_form
+      -- Step 1: Unfold the definition and simplify
+      unfold motzkin
       simp
 
-      -- Step 2: Use the induction hypothesis on the left hand side in the sum..
+      -- Step 2: Use the induction hypothesis on the left hand side in the sum and the first summand
       have h_sum_rewrite_ih:
           (∑ i ∈ (range m).attach, motzkin ↑i * motzkin (m - 1 - ↑i)) =
           (∑ i ∈ range m, motzkin_closed_form i * motzkin_closed_form (m - 1 - i)) := by
@@ -288,15 +271,29 @@ theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := 
         · intro x hx
           grind
 
-      rw [h_sum_rewrite_ih]
-
-      -- ..and the first summand
-      rw [ih m (lt_succ_self m)]
+      rw [h_sum_rewrite_ih, ih m (lt_succ_self m)]
 
       -- Step 3: Use the auxiliary lemma to replace the sum on the left hand side
       rw [convolution_identity_closed_form m]
 
-      -- Step 4:
-      --unfold motzkin_closed_form
+      -- Step 4: Unfold the definition of the closed motzkin formulation
+      unfold motzkin_closed_form
 
-      sorry
+      -- Step 5: Split the k=0 term on both sides and simplify
+      rw [Finset.sum_range_succ']
+      conv_rhs => rw [Finset.sum_range_succ']
+      simp
+
+      -- Step 6: Use Pascal's idendity to split the right sum into 2 sums
+      simp_rw [mul_add, mul_one, choose_succ_succ, add_mul, sum_add_distrib]
+
+      -- Step 7: Adjust the sum ranges on the left hand side to m+1
+      rw [sum_subset (Finset.range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
+        rw [mem_range, not_lt] at hx
+        apply mul_eq_zero_of_left; apply choose_eq_zero_of_lt; omega)]
+
+      rw [sum_subset (Finset.range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
+        rw [mem_range, not_lt] at hx
+        apply mul_eq_zero_of_left; apply choose_eq_zero_of_lt; omega)]
+
+      ring
