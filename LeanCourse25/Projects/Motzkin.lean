@@ -67,33 +67,29 @@ private lemma inner_sum_extensions (n : ℕ) : ∀ i ∈ range n,
     ∑ a ∈ range n, ∑ b ∈ range (n-a), choose i (2 * a) * catalan a *
       (choose (n - 1 - i) (2 * b) * catalan b) := by
 
+  -- Introduce i
   intro i hi
-  rw [mem_range] at hi
 
+  -- Divide the goal into 2 separate goals, each taking care of the extension of one sum
   trans ∑ a ∈ range (i + 1), ∑ b ∈ range (n - a), choose i (2 * a) * catalan a *
       (choose (n - 1 - i) (2 * b) * catalan b)
 
+  -- Goal 1: Extension of the inner sum
   · apply sum_congr rfl
     intro a ha
-    rw [mem_range] at ha
 
     apply sum_subset
     · grind
     · intro b _ hb_not
-      rw [mem_range, not_lt] at hb_not
-      have h_zero : choose (n - 1 - i) (2 * b) = 0 := by
-        apply choose_eq_zero_of_lt
-        omega
-      simp [h_zero]
+      rw [choose_eq_zero_of_lt (by grind : n - 1 - i < 2 * b)]
+      simp
 
+  -- Goal 2: Extension of the outer sum
   · apply sum_subset
     · grind
     · intro a _ ha_not
-      rw [mem_range, not_lt] at ha_not
-      have h_zero : choose i (2 * a) = 0 := by
-        apply choose_eq_zero_of_lt
-        omega
-      simp [h_zero]
+      rw [choose_eq_zero_of_lt (by grind)]
+      simp
 
 
 -- A binomial identity
