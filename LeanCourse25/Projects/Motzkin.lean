@@ -297,3 +297,110 @@ theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := 
         apply mul_eq_zero_of_left; apply choose_eq_zero_of_lt; omega)]
 
       ring
+
+
+
+
+
+-- Another technical lemma to simplify a sum
+private lemma simplify_inner_sum (n j : ℕ) :
+    ∑ k ∈ range (n + 1), choose n k * (choose k (2 * j) * catalan j) =
+    (choose n (2 * j) * catalan j) * 2 ^ (n - 2 * j) := by
+
+  -- Distinguish 2 cases
+  by_cases h_le : 2 * j ≤ n
+
+  -- Case 1: 2j <= n
+  · -- Restrict the sum
+    rw [← sum_subset (s₁ := Ico (2 * j) (n + 1))
+        (by intro x hx; rw [mem_range]; exact (mem_Ico.mp hx).2)
+        (by
+            intro k hk_range hk_not_ico
+            have hk_lt : k < 2 * j := by
+              rw [mem_range] at hk_range; rw [mem_Ico] at hk_not_ico
+              omega
+            rw [choose_eq_zero_of_lt hk_lt, zero_mul]
+            rfl
+        )]
+
+    -- Index shift
+    rw [Finset.sum_Ico_eq_sum_range]
+
+    calc
+      ∑ x ∈ range (n + 1 - 2 * j), n.choose (2*j+x) * ((2*j+x).choose (2*j) * catalan j)
+
+      -- Reorder terms and use an identity to transform the product of binomial coefficients
+      _ = ∑ x ∈ range (n+1-2*j), (n.choose (2*j) * catalan j) * (n-2*j).choose (2*j+x - 2*j) := by
+        rw [sum_congr rfl]
+        intro x hx
+        rw [← mul_assoc, choose_mul ?_ (le_add_right (2 * j) x)]
+        · ring
+        · grind
+
+      -- Pull out constant terms and simplify
+      _= (n.choose (2*j) * catalan j) * ∑ x ∈ range (n+1-2*j), (n-2*j).choose x := by
+        simp
+        exact Eq.symm
+            (mul_sum (range (n + 1 - 2 * j)) (n - 2 * j).choose (n.choose (2 * j) * catalan j))
+
+      -- Modify the sum range slightly
+      _= (n.choose (2*j) * catalan j) * ∑ x ∈ range (n-2*j+1), (n-2*j).choose x := by
+        rw [← tsub_add_eq_add_tsub h_le]
+
+      -- Use another binomial identity to compute the sum
+      _= (n.choose (2*j) * catalan j) * 2 ^ (n - 2 * j) := by rw [sum_range_choose]
+
+  -- Case 2: 2j > n
+  · rw [choose_eq_zero_of_lt (by omega), zero_mul, zero_mul]
+    apply sum_eq_zero
+    intro k hk
+    rw [choose_eq_zero_of_lt (by grind : k < 2 * j)]
+    ring
+
+
+-- Touchard Identity
+private lemma touchard_identity (n : ℕ) :
+  ∑ k ∈ range (n + 1), (choose n (2 * k) * catalan k) * 2 ^ (n - 2 * k) = catalan (n + 1):= by
+  sorry
+
+
+
+-- Main theorem 2: Expresses any Catalan number in terms of the Motzkin numbers
+theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k := by
+
+  -- Internally, we swap the sides of the equation
+  apply Eq.symm
+
+  -- Step 1: Use the first main theorem
+  simp_rw [motzkin_eq_closed_form, motzkin_closed_form]
+
+  calc
+    ∑ k ∈ range (n+1), choose n k * ∑ j ∈ range (k+1), choose k (2 * j) * catalan j
+
+    -- Step 2: Move the binomial coefficient into the inner sum
+    _ = ∑ k ∈ range (n + 1), ∑ j ∈ range (k + 1), choose n k * (choose k (2 * j) * catalan j) := by
+      rw [sum_congr rfl]
+      intro x hx
+      rw [mul_sum (range (x + 1)) (fun i ↦ x.choose (2 * i) * catalan i) (n.choose x)]
+
+    -- Step 3 : Extend the inner sum
+    _ = ∑ k ∈ range (n + 1), ∑ j ∈ range (n + 1), choose n k * (choose k (2 * j) * catalan j) := by
+      apply sum_congr rfl
+      intro k hk
+      rw [mem_range] at hk
+
+      apply sum_subset (Finset.range_mono (by omega : k + 1 ≤ n + 1))
+      intro j _ hj_out
+      rw [choose_eq_zero_of_lt (by grind : k < 2 * j)]
+      ring
+
+    -- Step 4: Swap the inner with the outer sum
+    _ = ∑ k ∈ range (n + 1), ∑ j ∈ range (n + 1), choose n j * (choose j (2 * k) * catalan k) := by
+      rw [sum_comm]
+
+    -- Step 5: Simplify the new inner sum
+    _ = ∑ k ∈ range (n + 1), (choose n (2 * k) * catalan k) * 2 ^ (n - 2 * k) := by
+      simp_rw [simplify_inner_sum]
+
+    -- Step 6:
+    _ = catalan (n + 1) := by rw [touchard_identity]
