@@ -71,12 +71,42 @@ private lemma inner_sum_extensions (n : ℕ) : ∀ i ∈ range n,
   sorry
 
 
+-- A binomial identity
+private lemma choose_mul_choose_sum (n r s : ℕ) :
+    ∑ i ∈ range n, choose i r * choose (n - 1 - i) s = choose n (r + s + 1) := by
+  induction n generalizing s with
+  | zero => simp
+  | succ n ih =>
+    rw [sum_range_succ]
+
+    cases s with
+    | zero =>
+      specialize ih 0
+      simp only [choose_zero_right, mul_one] at *
+      rw [ih, add_comm, ← Nat.choose_succ_succ]
+
+    | succ s =>
+      simp
+
+      have h_pascal : ∀ i ∈ range n,
+          choose (n - i) (s + 1) = choose (n - 1 - i) (s + 1) + choose (n - 1 - i) s := by
+        intro i hi
+        rw [mem_range] at hi
+        have h_idx : n - i = (n - 1 - i) + 1 := by omega
+        rw [h_idx, Nat.choose_succ_succ, add_comm]
+
+      rw [sum_congr rfl (fun i hi => by rw [h_pascal i hi])]
+      simp [mul_add]
+      rw [sum_add_distrib]
+
+      rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← Nat.choose_succ_succ]
+
+
 -- A binomial identity similar to Vandermonde's identity.
 private lemma binomial_identity (n a b : ℕ) :
     ∑ i ∈ range n, choose i (2 * a) * choose (n-1-i) (2 * b) = choose n (2 * a + 2 * b + 1) := by
 
-  -- ToDo
-  sorry
+  apply choose_mul_choose_sum
 
 
 /- A sum similar to the above identity with additional constant factors inside. The factors are
