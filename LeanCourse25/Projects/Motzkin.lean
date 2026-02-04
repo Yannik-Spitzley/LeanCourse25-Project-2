@@ -95,6 +95,8 @@ private lemma inner_sum_extensions (n : ℕ) : ∀ i ∈ range n,
 -- A binomial identity
 private lemma choose_mul_choose_sum (n r s : ℕ) :
     ∑ i ∈ range n, choose i r * choose (n - 1 - i) s = choose n (r + s + 1) := by
+
+  -- Use induction
   induction n generalizing s with
   | zero => simp
   | succ n ih =>
@@ -109,17 +111,18 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
     | succ s =>
       simp
 
+      -- Rewrite the sum into 2 separate sums
       have h_pascal : ∀ i ∈ range n,
           choose (n - i) (s + 1) = choose (n - 1 - i) (s + 1) + choose (n - 1 - i) s := by
         intro i hi
-        rw [mem_range] at hi
-        have h_idx : n - i = (n - 1 - i) + 1 := by omega
+        have h_idx : n - i = (n - 1 - i) + 1 := by grind
         rw [h_idx, Nat.choose_succ_succ, add_comm]
 
       rw [sum_congr rfl (fun i hi => by rw [h_pascal i hi])]
-      simp [mul_add]
+      simp only [mul_add]
       rw [sum_add_distrib]
 
+      -- Use the induction hypothesis
       rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← Nat.choose_succ_succ]
 
 
