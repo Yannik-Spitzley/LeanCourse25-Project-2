@@ -21,13 +21,30 @@ the number of different ways of drawing non-intersecting chords between n points
 not necessarily every point has to be connected with a chord. They also have interesting connections
 to the Cataln numbers.
 
-## Main Definitions
+## Main definitions
 
-* ToDo
+* `motzkin n`: The n-th Motzkin number, defined recursively as
+  `motzkin (n+1) = motzkin n + ∑ i ∈ range n, motzkin i * motzkin (n-1-i)` and `motzkin 0 = 1`.
+
+* `motzkin_series`: The generating functions of the Motzkin numbers.
 
 ## Main results
 
-* ToDo
+* `motzkin_eq_catalan`: Expresses the n-th Motzkin number in terms of the Catalan numbers with the
+  identity `motzkin n = ∑ k ∈ range (n + 1), choose n (2 * k) * catalan k`.
+
+* `catlan_eq_motzkin`: Expresses the (n+1)-th Catalan number in terms of the Motzkin numbers with
+  the identity `catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k`.
+
+* `motzkin_linear_recurrence`: A linear recursion formula for the Motzkin numbers:
+  `(n + 2) * motzkin n = (2 * n + 1) * motzkin (n - 1) + 3 * (n - 1) * motzkin (n - 2)`.
+
+* `motzkin_series_eq_one_add_mul_add_sq`: The generating function `m(x)` of the Motzkin numbers
+  satisfies the identity `m(x) = 1 + x*m(x) + x^2*m(x)^2`.
+
+* `motzkin_series_closed_form_algebraic`: An explicit closed formula for the generating function:
+  `(2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2`.
+
 -/
 
 
@@ -256,7 +273,7 @@ private theorem convolution_identity_closed_form (n : ℕ) :
 
 
 /-- Main theorem 1: Expresses the n-th Motzkin number in terms of the Catalan numbers. -/
-theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := by
+theorem motzkin_eq_catalan (n : ℕ) : motzkin n = motzkin_closed_form n := by
   -- We prove the theorem with strong induction
   induction n using Nat.strong_induction_on with
   | h n ih =>
@@ -378,7 +395,7 @@ theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), ch
   apply symm
 
   -- Step 1: Use the first main theorem
-  simp_rw [motzkin_eq_closed_form, motzkin_closed_form]
+  simp_rw [motzkin_eq_catalan, motzkin_closed_form]
 
   calc
     ∑ k ∈ range (n+1), choose n k * ∑ j ∈ range (k+1), choose k (2 * j) * catalan j
@@ -445,7 +462,7 @@ theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
 
   -- Step 1: Expresses all Motzkin numbers through Catalan numbers and push the constant factors
   -- in the sums.
-  simp_rw [motzkin_eq_closed_form, motzkin_closed_form, mul_sum]
+  simp_rw [motzkin_eq_catalan, motzkin_closed_form, mul_sum]
 
   -- Step 2: Clean the sum ranges
   have h_idx1 : n - 1 + 1 = n := by omega
@@ -488,7 +505,7 @@ def motzkin_series : PowerSeries ℚ := mk (fun n => (motzkin n : ℚ))
 
 
 /-- Main theorem 4: An important identitity satisfied by the generating function. -/
-theorem motzkin_generating_function_spec :
+theorem motzkin_series_eq_one_add_mul_add_sq :
   motzkin_series = 1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2 := by
 
   -- Compare the coefficients
@@ -522,7 +539,7 @@ theorem motzkin_generating_function_spec :
 
 
 /-- Main theorem 5: An explicite expression of the generating function. -/
-theorem motzkin_closed_form_algebraic :
+theorem motzkin_series_closed_form_algebraic :
     (2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2 := by
 
   -- Rearrange the terms and proceed with the previous theorem
@@ -531,5 +548,5 @@ theorem motzkin_closed_form_algebraic :
     _ = 4 * X ^ 2 * (1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2)
         - 4 * X ^ 2 * motzkin_series - 4 * X ^ 2 + (1 - X) ^ 2 := by ring
     _ = 1 - 2 * X - 3 * X ^ 2 := by
-      rw [← motzkin_generating_function_spec]
+      rw [← motzkin_series_eq_one_add_mul_add_sq]
       ring
