@@ -1,5 +1,6 @@
 /-
-Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and generating function
+Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and
+generating function
 Authors: Yannik Spitzley
 -/
 
@@ -16,10 +17,10 @@ open Nat BigOperators Finset PowerSeries
 /-
 # Motzkin numbers
 
-The Motzkin numbers (https://oeis.org/A001006) enumerate many combinatorical objects, for example
+The Motzkin numbers (https://oeis.org/A001006) enumerate many combinatorial objects, for example
 the number of different ways of drawing non-intersecting chords between n points on a circle, where
 not necessarily every point has to be connected with a chord. They also have interesting connections
-to the Cataln numbers.
+to the Catalan numbers.
 
 ## Main definitions
 
@@ -33,7 +34,7 @@ to the Cataln numbers.
 * `motzkin_eq_catalan`: Expresses the n-th Motzkin number in terms of the Catalan numbers with the
   identity `motzkin n = ∑ k ∈ range (n + 1), choose n (2 * k) * catalan k`.
 
-* `catlan_eq_motzkin`: Expresses the (n+1)-th Catalan number in terms of the Motzkin numbers with
+* `catalan_eq_motzkin`: Expresses the (n+1)-th Catalan number in terms of the Motzkin numbers with
   the identity `catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k`.
 
 * `motzkin_linear_recurrence`: A linear recursion formula for the Motzkin numbers:
@@ -155,7 +156,7 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
 
 
 /-- A technical lemma covering a binomial identity. This extends `choose_mul_choose_sum`.
-    `ToDo:` Remove this as a own lemma. -/
+    `ToDo:` Remove this as its own lemma. -/
 private lemma binomial_identity (n a b : ℕ) :
     ∑ i ∈ range n, choose i (2 * a) * choose (n-1-i) (2 * b) = choose n (2 * a + 2 * b + 1) := by
 
@@ -169,7 +170,7 @@ private lemma binomial_convolution (n a b : ℕ) :
 
   calc
     ∑ i ∈ range n, choose i (2 * a) * catalan a * (choose (n - 1 - i) (2 * b) * catalan b)
-    -- Use commutivity and associativity inside the sum to prepare the constants for the next step
+    -- Use commutativity and associativity inside the sum to prepare the constants for the next step
     _ = ∑ i ∈ range n, catalan a * (catalan b * (choose i (2*a) * choose (n-1-i) (2*b))) := by
       grind
     -- Pull the constants out of the sum and simplify the remaining sum
@@ -253,7 +254,7 @@ private theorem convolution_identity_closed_form (n : ℕ) :
   rw [sum_congr rfl (fun i _ => sum_mul _ _ _)]
   rw [sum_congr rfl (fun i _ => sum_congr rfl (fun a _ => mul_sum _ _ _))]
 
-  -- Step 3: Extend the inner sums so they can be swaped with the outer sum.
+  -- Step 3: Extend the inner sums so they can be swapped with the outer sum.
   -- This is viable as the binomial coefficients in the new summands are 0.
   rw [sum_congr rfl (inner_sum_extensions n)]
 
@@ -311,7 +312,7 @@ theorem motzkin_eq_catalan (n : ℕ) : motzkin n = motzkin_closed_form n := by
       conv_rhs => rw [sum_range_succ']
       simp
 
-      -- Step 6: Use Pascal's idendity to split the right sum into 2 sums
+      -- Step 6: Use Pascal's identity to split the right sum into 2 sums
       simp_rw [mul_add, mul_one, choose_succ_succ, add_mul, sum_add_distrib]
 
       -- Step 7: Adjust the sum ranges on the left hand side to m+1
@@ -389,7 +390,7 @@ private lemma touchard_identity (n : ℕ) :
 
 
 /-- Main theorem 2: Expresses any Catalan number in terms of the Motzkin numbers. -/
-theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k := by
+theorem catalan_eq_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k := by
 
   -- Internally, we swap the sides of the equation
   apply symm
@@ -452,7 +453,7 @@ private lemma catalan_recurrence (n : ℕ) :
   -- Simplify both sides
   rw [Nat.mul_div_cancel' (n + 1).succ_dvd_centralBinom, Nat.div_mul_cancel n.succ_dvd_centralBinom]
 
-  -- Use an idendity of the central binomial coefficient
+  -- Use an identity of the central binomial coefficient
   rw [succ_mul_centralBinom_succ]
 
 
@@ -497,14 +498,14 @@ theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
 
 
 /- # Generating function
-  This section will establish the generating function of the Motzkin numbers and give an explicite
+  This section will establish the generating function of the Motzkin numbers and give an explicit
   expression of it. -/
 
 /-- The definition of the generating function of the Motzkin numbers. -/
 def motzkin_series : PowerSeries ℚ := mk (fun n => (motzkin n : ℚ))
 
 
-/-- Main theorem 4: An important identitity satisfied by the generating function. -/
+/-- Main theorem 4: An important identity satisfied by the generating function. -/
 theorem motzkin_series_eq_one_add_mul_add_sq :
   motzkin_series = 1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2 := by
 
@@ -538,7 +539,7 @@ theorem motzkin_series_eq_one_add_mul_add_sq :
       rw [sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
 
 
-/-- Main theorem 5: An explicite expression of the generating function. -/
+/-- Main theorem 5: An explicit expression of the generating function. -/
 theorem motzkin_series_closed_form_algebraic :
     (2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2 := by
 
