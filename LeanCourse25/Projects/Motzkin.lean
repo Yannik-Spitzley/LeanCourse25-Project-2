@@ -2,10 +2,12 @@
 Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and generating function
 Authors: Yannik Spitzley
 -/
+
+import Mathlib.Combinatorics.Enumerative.Catalan
 import Mathlib.Data.Finset.NatAntidiagonal
 import Mathlib.Data.Finset.Sigma
 import Mathlib.Data.Nat.Choose.Sum
-import Mathlib.Combinatorics.Enumerative.Catalan
+import Mathlib.RingTheory.PowerSeries.Basic
 import Mathlib.Tactic
 
 open Nat BigOperators Finset
@@ -465,3 +467,49 @@ theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
 
 
   sorry
+
+
+
+
+
+noncomputable section
+
+open PowerSeries
+
+-- Definition of the generating function of the Motzkin numbers
+def motzkin_series : PowerSeries ℚ := mk (fun n => (motzkin n : ℚ))
+
+
+
+-- Main theorem 4: Identitity of the generating function
+theorem motzkin_generating_function_spec :
+  motzkin_series = 1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2 := by
+
+  -- Compare the coefficients
+  ext n
+  simp only [map_add, coeff_one]
+
+  cases n with
+  -- n=0
+  | zero => simp [motzkin_series]
+  | succ n =>
+    rw [pow_two, mul_assoc, ← pow_one X]
+    simp only [PowerSeries.coeff_X_pow_mul]
+
+    cases n with
+    -- n = 1
+    | zero => simp [motzkin_series]
+
+    -- n ≥ 2
+    | succ m =>
+
+      rw [PowerSeries.coeff_X_pow_mul]
+      rw [pow_two, PowerSeries.coeff_mul]
+      rw [Nat.sum_antidiagonal_eq_sum_range_succ
+          (fun i j => coeff i motzkin_series * coeff j motzkin_series)]
+
+      simp only [motzkin_series, PowerSeries.coeff_mk]
+
+      rw [motzkin.eq_def (m + 1 + 1)]
+      simp
+      rw [Finset.sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
