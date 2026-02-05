@@ -42,7 +42,7 @@ def motzkin : ℕ → ℕ
   | 0 => 1
   | (n + 1) => motzkin n + ∑ i ∈ (range n).attach,
       -- Show that both recursive calls use smaller indices
-      have : i.1 < n + 1 := by exact Nat.lt_succ_of_lt (mem_range.mp i.2)
+      have : i.1 < n + 1 := by exact lt_succ_of_lt (mem_range.mp i.2)
       have : n - 1 - i.1 < n + 1 := by omega
 
       motzkin i.1 * motzkin (n - 1 - i.1)
@@ -117,7 +117,7 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
     | zero =>
       specialize ih 0
       simp only [choose_zero_right, mul_one] at *
-      rw [ih, add_comm, ← Nat.choose_succ_succ]
+      rw [ih, add_comm, ← choose_succ_succ]
 
     | succ s =>
       simp
@@ -127,14 +127,14 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
           choose (n - i) (s + 1) = choose (n - 1 - i) (s + 1) + choose (n - 1 - i) s := by
         intro i hi
         have h_idx : n - i = (n - 1 - i) + 1 := by grind
-        rw [h_idx, Nat.choose_succ_succ, add_comm]
+        rw [h_idx, choose_succ_succ, add_comm]
 
       rw [sum_congr rfl (fun i hi => by rw [h_pascal i hi])]
       simp only [mul_add]
       rw [sum_add_distrib]
 
       -- Use the induction hypothesis
-      rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← Nat.choose_succ_succ]
+      rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← choose_succ_succ]
 
 
 /-- A technical lemma covering a binomial identity. This extends `choose_mul_choose_sum`.
@@ -290,19 +290,19 @@ theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := 
       unfold motzkin_closed_form
 
       -- Step 5: Split the k=0 term on both sides and simplify
-      rw [Finset.sum_range_succ']
-      conv_rhs => rw [Finset.sum_range_succ']
+      rw [sum_range_succ']
+      conv_rhs => rw [sum_range_succ']
       simp
 
       -- Step 6: Use Pascal's idendity to split the right sum into 2 sums
       simp_rw [mul_add, mul_one, choose_succ_succ, add_mul, sum_add_distrib]
 
       -- Step 7: Adjust the sum ranges on the left hand side to m+1
-      rw [sum_subset (Finset.range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
+      rw [sum_subset (range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
         rw [mem_range, not_lt] at hx
         apply mul_eq_zero_of_left; apply choose_eq_zero_of_lt; omega)]
 
-      rw [sum_subset (Finset.range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
+      rw [sum_subset (range_mono (by omega : m ≤ m + 1)) (fun x _ hx => by
         rw [mem_range, not_lt] at hx
         apply mul_eq_zero_of_left; apply choose_eq_zero_of_lt; omega)]
 
@@ -331,7 +331,7 @@ private lemma simplify_inner_sum (n j : ℕ) :
         )]
 
     -- Index shift
-    rw [Finset.sum_Ico_eq_sum_range]
+    rw [sum_Ico_eq_sum_range]
 
     calc
       ∑ x ∈ range (n + 1 - 2 * j), n.choose (2*j+x) * ((2*j+x).choose (2*j) * catalan j)
@@ -375,7 +375,7 @@ private lemma touchard_identity (n : ℕ) :
 theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k := by
 
   -- Internally, we swap the sides of the equation
-  apply Eq.symm
+  apply symm
 
   -- Step 1: Use the first main theorem
   simp_rw [motzkin_eq_closed_form, motzkin_closed_form]
@@ -395,7 +395,7 @@ theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), ch
       intro k hk
       rw [mem_range] at hk
 
-      apply sum_subset (Finset.range_mono (by omega : k + 1 ≤ n + 1))
+      apply sum_subset (range_mono (by omega : k + 1 ≤ n + 1))
       intro j _ hj_out
       rw [choose_eq_zero_of_lt (by grind : k < 2 * j)]
       ring
@@ -500,7 +500,7 @@ theorem motzkin_generating_function_spec :
   | zero => simp [motzkin_series]
   | succ n =>
     rw [pow_two, mul_assoc, ← pow_one X]
-    simp only [PowerSeries.coeff_X_pow_mul]
+    simp only [coeff_X_pow_mul]
 
     cases n with
     -- n = 1
@@ -509,16 +509,16 @@ theorem motzkin_generating_function_spec :
     -- n ≥ 2
     | succ m =>
 
-      rw [PowerSeries.coeff_X_pow_mul]
-      rw [pow_two, PowerSeries.coeff_mul]
+      rw [coeff_X_pow_mul]
+      rw [pow_two, coeff_mul]
       rw [Nat.sum_antidiagonal_eq_sum_range_succ
           (fun i j => coeff i motzkin_series * coeff j motzkin_series)]
 
-      simp only [motzkin_series, PowerSeries.coeff_mk]
+      simp only [motzkin_series, coeff_mk]
 
       rw [motzkin.eq_def (m + 1 + 1)]
       simp
-      rw [Finset.sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
+      rw [sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
 
 
 /-- Main theorem 5: An explicite expression of the generating function. -/
