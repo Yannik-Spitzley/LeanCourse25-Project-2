@@ -10,7 +10,7 @@ import Mathlib.Data.Nat.Choose.Sum
 import Mathlib.RingTheory.PowerSeries.Basic
 import Mathlib.Tactic
 
-open Nat BigOperators Finset
+open Nat BigOperators Finset PowerSeries
 
 
 /-
@@ -31,8 +31,13 @@ to the Cataln numbers.
 -/
 
 
--- # Main Definition
--- The recursive definition of the sequence of Motzkin numbers
+
+/- # Main definition and simple theorems
+    This section contains the main definition of the Motzkin numbers as well as some very
+    simple theorems. -/
+
+/-- The `n-th motzkin number` is defined by a standard recursion formula, that follows from the
+    geometric interpretation. It can be used with `motzkin n`. -/
 def motzkin : ℕ → ℕ
   | 0 => 1
   | (n + 1) => motzkin n + ∑ i ∈ (range n).attach,
@@ -44,8 +49,7 @@ def motzkin : ℕ → ℕ
 termination_by n => n
 
 
-
--- # Simple theorems
+/-- The first 2 Motzkin numbers. -/
 @[simp]
 theorem motzkin_zero : motzkin 0 = 1 := by rw [motzkin]
 
@@ -54,15 +58,20 @@ theorem motzkin_one : motzkin 1 = 1 := by simp [motzkin]
 
 
 
-/- # Connection to the Catalan numbers (for better readability as its own definition)
-  Note: The sum usually only goes until floor(n/2), which is mathematically equivalent as the
-  additional binomial coefficients are all 0.-/
+
+
+/- # Connection to the Catalan numbers
+  This section will establish the connection between the Motzkin numbers and the Catalan numbers as
+  each number can be expressed through the others. -/
+
+/-- The expression of the `n-th motzkin number` in terms of the Catalan numbers. For better
+    readability as its own definition.
+    `Remark:` The sum usually only goes until `k = floor(n/2)`, which is mathematically equivalent
+    to the given definition as the additional binomial coefficients are all 0. -/
 private def motzkin_closed_form (n : ℕ) : ℕ := ∑ k ∈ range (n + 1), (choose n (2 * k)) * catalan k
 
 
-
-/- # Technical lemmas
-  We can extend the range of the sums as the additional binomial coefficients are 0.-/
+/-- A technical lemma extending the range of sums as the additional binomial coefficients are 0. -/
 private lemma inner_sum_extensions (n : ℕ) : ∀ i ∈ range n,
     ∑ a ∈ range (i + 1), ∑ b ∈ range (n - 1 - i + 1), choose i (2 * a) * catalan a *
       (choose (n - 1 - i) (2 * b) * catalan b) =
@@ -94,7 +103,7 @@ private lemma inner_sum_extensions (n : ℕ) : ∀ i ∈ range n,
       simp
 
 
--- A binomial identity
+/-- A technical lemma covering a necessary binomial identity. -/
 private lemma choose_mul_choose_sum (n r s : ℕ) :
     ∑ i ∈ range n, choose i r * choose (n - 1 - i) s = choose n (r + s + 1) := by
 
@@ -128,15 +137,15 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
       rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← Nat.choose_succ_succ]
 
 
--- A binomial identity similar to Vandermonde's identity.
+/-- A technical lemma covering a binomial identity. This extends `choose_mul_choose_sum`.
+    `ToDo:` Remove this as a own lemma. -/
 private lemma binomial_identity (n a b : ℕ) :
     ∑ i ∈ range n, choose i (2 * a) * choose (n-1-i) (2 * b) = choose n (2 * a + 2 * b + 1) := by
 
   apply choose_mul_choose_sum
 
 
-/- A sum similar to the above identity with additional constant factors inside. The factors are
-  pulled out of the sum, which can be simplified using the above identity.-/
+/-- A technical lemma for an identity between binomial coefficients and the Catalan numbers. -/
 private lemma binomial_convolution (n a b : ℕ) :
     ∑ i ∈ range n, choose i (2 * a) * catalan a * (choose (n - 1 - i) (2 * b) * catalan b) =
     catalan a * catalan b * choose n (2 * a + 2 * b + 1) := by
@@ -152,8 +161,8 @@ private lemma binomial_convolution (n a b : ℕ) :
       ring
 
 
-/- Transforms a triangular shaped sum `∑_{i=0}^n ∑_{k=0}^{n-i} [...] ` to an equivalent diagonal
-  shaped sum `∑_k ∑_{a+b=k} [...]`. -/
+/-- A technical lemma to transform a triangular shaped sum `∑_{i=0}^n ∑_{k=0}^{n-i} [...]` to an
+    equivalent diagonal shaped sum `∑_k ∑_{a+b=k} [...]`. -/
 private lemma triangle_to_diagonal {M : Type*} [AddCommMonoid M] (f : ℕ → ℕ → M) (n : ℕ) :
     ∑ a ∈ range n, ∑ b ∈ range (n - a), f a b =
     ∑ k ∈ range n, ∑ x ∈ antidiagonal k, f x.1 x.2 := by
@@ -191,8 +200,8 @@ private lemma triangle_to_diagonal {M : Type*} [AddCommMonoid M] (f : ℕ → �
   · exact fun a ha ↦ rfl
 
 
-/- Simplify a sum of Catalan numbers to the product of a single Catalan number and
-  binomial coefficient. -/
+/-- A technical lemma to simplify a sum of Catalan numbers to the product of a single Catalan
+    number and binomial coefficient. -/
 private lemma simplify_catalan_sum (n : ℕ) : ∀ k ∈ range n,
     ∑ x ∈ antidiagonal k, catalan x.1 * catalan x.2 * choose n (2 * x.1 + 2 * x.2 + 1) =
     choose n (2 * k + 1) * catalan (k + 1) := by
@@ -214,9 +223,9 @@ private lemma simplify_catalan_sum (n : ℕ) : ∀ k ∈ range n,
     _ = choose n (2 * k + 1) * catalan (k + 1) := by rw [← sum_mul, ← catalan_succ', mul_comm]
 
 
-/- Main technical lemma: Rewrites a sum of products of motzkin numbers (in closed formulation)
-  to a sum of binomial coefficients and Catalan numbers. -/
-private lemma convolution_identity_closed_form (n : ℕ) :
+/-- Main technical theorem: Rewrites a sum of products of Motzkin numbers (that can be expressed
+    through Catalan numbers) to a sum of binomial coefficients and Catalan numbers. -/
+private theorem convolution_identity_closed_form (n : ℕ) :
     ∑ i ∈ range n, motzkin_closed_form i * motzkin_closed_form (n - 1 - i) =
     ∑ k ∈ range n, (choose n (2 * k + 1)) * catalan (k + 1) := by
 
@@ -246,8 +255,7 @@ private lemma convolution_identity_closed_form (n : ℕ) :
   rw [sum_congr rfl (simplify_catalan_sum n)]
 
 
-
--- Main theorem 1: Expresses any Motzkin number in terms of the Catalan numbers
+/-- Main theorem 1: Expresses the n-th Motzkin number in terms of the Catalan numbers. -/
 theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := by
   -- We prove the theorem with strong induction
   induction n using Nat.strong_induction_on with
@@ -301,10 +309,7 @@ theorem motzkin_eq_closed_form (n : ℕ) : motzkin n = motzkin_closed_form n := 
       ring
 
 
-
-
-
--- Another technical lemma to simplify a sum
+/-- A technical lemma for an identity between binomial coefficients and Catalan numbers. -/
 private lemma simplify_inner_sum (n j : ℕ) :
     ∑ k ∈ range (n + 1), choose n k * (choose k (2 * j) * catalan j) =
     (choose n (2 * j) * catalan j) * 2 ^ (n - 2 * j) := by
@@ -360,14 +365,13 @@ private lemma simplify_inner_sum (n j : ℕ) :
     ring
 
 
--- Touchard Identity
+/-- Touchard's identity -/
 private lemma touchard_identity (n : ℕ) :
   ∑ k ∈ range (n + 1), (choose n (2 * k) * catalan k) * 2 ^ (n - 2 * k) = catalan (n + 1):= by
   sorry
 
 
-
--- Main theorem 2: Expresses any Catalan number in terms of the Motzkin numbers
+/-- Main theorem 2: Expresses any Catalan number in terms of the Motzkin numbers. -/
 theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), choose n k * motzkin k := by
 
   -- Internally, we swap the sides of the equation
@@ -411,7 +415,11 @@ theorem catalan_as_motzkin (n : ℕ) : catalan (n+1) = ∑ k ∈ range (n+1), ch
 
 
 
--- Catalan Recursion
+/- # A linear recursion formula
+  This section will establish a simpler recursion formula, where the n-th Motzkin number depends
+  only on the previous 2 Motzkin numbers. -/
+
+/-- A simple recursion formula for the Catalan numbers. -/
 private lemma catalan_recurrence (n : ℕ) :
   (n + 2) * catalan (n + 1) = 2 * (2 * n + 1) * catalan n := by
 
@@ -431,8 +439,7 @@ private lemma catalan_recurrence (n : ℕ) :
   rw [succ_mul_centralBinom_succ]
 
 
-
--- Main theorem 3: A linear recursion formula for the Motzkin numbers
+/-- Main theorem 3: A linear recursion formula for the Motzkin numbers. -/
 theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
   (n + 2) * motzkin n = (2 * n + 1) * motzkin (n - 1) + 3 * (n - 1) * motzkin (n - 2) := by
 
@@ -472,16 +479,15 @@ theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
 
 
 
-noncomputable section
+/- # Generating function
+  This section will establish the generating function of the Motzkin numbers and give an explicite
+  expression of it. -/
 
-open PowerSeries
-
--- Definition of the generating function of the Motzkin numbers
+/-- The definition of the generating function of the Motzkin numbers. -/
 def motzkin_series : PowerSeries ℚ := mk (fun n => (motzkin n : ℚ))
 
 
-
--- Main theorem 4: Identitity of the generating function
+/-- Main theorem 4: An important identitity satisfied by the generating function. -/
 theorem motzkin_generating_function_spec :
   motzkin_series = 1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2 := by
 
@@ -515,8 +521,7 @@ theorem motzkin_generating_function_spec :
       rw [Finset.sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
 
 
-
--- Main theorem 5
+/-- Main theorem 5: An explicite expression of the generating function. -/
 theorem motzkin_closed_form_algebraic :
     (2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2 := by
 
