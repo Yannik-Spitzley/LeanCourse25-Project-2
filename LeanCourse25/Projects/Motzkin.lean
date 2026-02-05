@@ -427,3 +427,41 @@ private lemma catalan_recurrence (n : ℕ) :
 
   -- Use an idendity of the central binomial coefficient
   rw [succ_mul_centralBinom_succ]
+
+
+
+-- Main theorem 3: A linear recursion formula for the Motzkin numbers
+theorem motzkin_linear_recurrence (n : ℕ) (h_ge_2 : 2 ≤ n) :
+  (n + 2) * motzkin n = (2 * n + 1) * motzkin (n - 1) + 3 * (n - 1) * motzkin (n - 2) := by
+
+  -- Step 1: Expresses all Motzkin numbers through Catalan numbers and push the constant factors
+  -- in the sums.
+  simp_rw [motzkin_eq_closed_form, motzkin_closed_form, mul_sum]
+
+  -- Step 2: Clean the sum ranges
+  have h_idx1 : n - 1 + 1 = n := by omega
+  have h_idx2 : n - 2 + 1 = n - 1 := by omega
+  rw [h_idx1, h_idx2]
+
+
+  -- Step 3: Extend all sum ranges to n+1
+  rw [sum_subset (range_mono (le_succ n))
+      (by
+        intro k _ hk_new
+        have : n - 1 < 2 * k := by grind
+        rw [choose_eq_zero_of_lt this, zero_mul, mul_zero]
+      )]
+
+  rw [sum_subset (range_mono (by omega : n - 1 ≤ n + 1))
+      (by
+        intro k _ hk_new
+        have : n - 2 < 2 * k := by grind
+        rw [choose_eq_zero_of_lt this, zero_mul, mul_zero]
+      )]
+
+
+  -- Step 4: Combine the sums
+  rw [← sum_add_distrib]
+
+
+  sorry
