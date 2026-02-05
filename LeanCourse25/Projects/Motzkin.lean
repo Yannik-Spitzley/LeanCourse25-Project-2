@@ -513,3 +513,18 @@ theorem motzkin_generating_function_spec :
       rw [motzkin.eq_def (m + 1 + 1)]
       simp
       rw [Finset.sum_attach (f := fun x => (motzkin x : ℚ) * (motzkin (m - x) : ℚ))]
+
+
+
+-- Main theorem 5
+theorem motzkin_closed_form_algebraic :
+    (2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2 := by
+
+  -- Rearrange the terms and proceed with the previous theorem
+  calc
+    (2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2
+    _ = 4 * X ^ 2 * (1 + X * motzkin_series + X ^ 2 * motzkin_series ^ 2)
+        - 4 * X ^ 2 * motzkin_series - 4 * X ^ 2 + (1 - X) ^ 2 := by ring
+    _ = 1 - 2 * X - 3 * X ^ 2 := by
+      rw [← motzkin_generating_function_spec]
+      ring
