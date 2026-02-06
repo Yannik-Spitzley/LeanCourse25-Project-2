@@ -62,7 +62,7 @@ def motzkin : ℕ → ℕ
   | 0 => 1
   | (n + 1) => motzkin n + ∑ i ∈ (range n).attach,
       -- Show that both recursive calls use smaller indices
-      have : i.1 < n + 1 := by exact lt_succ_of_lt (mem_range.mp i.2)
+      have : i.1 < n + 1 := lt_succ_of_lt (mem_range.mp i.2)
       have : n - 1 - i.1 < n + 1 := by omega
 
       motzkin i.1 * motzkin (n - 1 - i.1)
