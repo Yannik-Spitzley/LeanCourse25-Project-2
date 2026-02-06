@@ -461,17 +461,21 @@ noncomputable instance (n : ℕ) : Fintype (chord_configuration n) := by
 theorem motzkin_card_chord_configuration (n : ℕ) :
     Fintype.card (chord_configuration n) = motzkin n := by
 
-  /- Sketch:
-    * Observe point 0 (or any fixed point):
+  /- Proof sketch:
+    * We can partition the number of chord configurations into two disjunct subsets S₁ ∪ S₂: The
+      ones that have a chord connecting the point n-1 and the ones that don't.
 
-    * Case 1: Point 0 is not connected through a chord -> n-1 points are remaining and we get
-      motzkin (n-1) options
+    * Case 1: Point n-1 is not connected through a chord. Then the points 0, 1, ..., n-2 can still
+      be connected through a chord and we get a bijection S₁ ≃ chord_configuration n-1, which has
+      by the induction hypothesis cardinality motzkin (n-1).
 
-    * Case 2: Point 0 is connected through a chord to point k>0 -> This divides the circle in two
-      separate areas, one with the points 1, 2, ..., k-1 and one with the points k+1, k+2, ..., n-1.
-      As no other chord can intersect the given chord (0, k), we can count the combinations as
-      motzkin (k-1) * motzkin (n-1-k). Summing up over all possible k, we get exactly the remaining
-      term in the motzkin recursion formula.
+    * Case 2: Point n-1 is connected through a chord to point k < n-1. This divides the circle in
+      two separate areas, one with the points 0, 1, 2, ..., k-1 and one with the points k+1, k+2,
+      ..., n-2. As no other chord can intersect the given chord (k, n-1), we can count the
+      combinations as motzkin k * motzkin (n-2-k). Summing up over all possible values of k,
+      we get |S₂| = ∑ k ∈ range (n-1), motzkin k * motzkin (n-2-k).
+
+    * Combining both statements, we get exactly the recursion formula from the definition.
   -/
 
   sorry
