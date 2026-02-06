@@ -1,6 +1,6 @@
 /-
-Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and
-generating function
+Project 2: ## Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan
+numbers, generating function and geometric interpreation
 Authors: Yannik Spitzley
 -/
 
@@ -31,6 +31,13 @@ to the Catalan numbers.
 
 * `motzkin_series`: The generating functions of the Motzkin numbers.
 
+* `is_chord`: The property of an orderer pair (of ℕ × ℕ) to model a chord between 2 of n points on
+  a circle.
+
+* `are_chords_intersecting`: The property whether 2 chords are intersecting each other.
+
+* `chord_configuration n`: A set of non-intersecting chords between n points on a circle.
+
 ## Main results
 
 * `motzkin_eq_catalan`: Expresses the n-th Motzkin number in terms of the Catalan numbers with the
@@ -48,6 +55,8 @@ to the Catalan numbers.
 * `motzkin_series_closed_form_algebraic`: An explicit closed formula for the generating function:
   `(2 * X ^ 2 * motzkin_series - (1 - X)) ^ 2 = 1 - 2 * X - 3 * X ^ 2`.
 
+* `motzkin_card_chord_configuration`: The number of non-intersecting chords between n points on a
+  circle is exactly the n-th Motzkin number: `Fintype.card (chord_configuration n) = motzkin n`.
 -/
 
 
@@ -390,3 +399,79 @@ theorem motzkin_series_closed_form_algebraic :
     _ = 1 - 2 * X - 3 * X ^ 2 := by
       rw [← motzkin_series_eq_one_add_mul_add_sq]
       ring
+
+
+
+
+
+/- # Geometric interpretation
+  This section will connect the formal definition through the given recursion formula and the
+  geometric interpretation as the number of different ways of drawing non-intersecting chords
+  between n points on a circle, where not necessarily every point has to be connected with a chord.
+
+  We will model the `n` points on the circle with the indices `0, 1, ..., n-1`. -/
+
+/-- A `chord` (on `n` points) is defined as an orderer pair `(i, j) : ℕ × ℕ` with `i < j < n`. -/
+def is_chord (n : ℕ) (p : ℕ × ℕ) : Prop := p.1 < p.2 ∧ p.2 < n
+
+
+/-- Two chords `(i, j)` and `(k, l)` `intersect` if and only if `i < k < j < l`. -/
+def are_chords_intersecting (p q : ℕ × ℕ) : Prop := p.1 < q.1 ∧ q.1 < p.2 ∧ p.2 < q.2
+
+
+/-- A `configuration` of chords on `n` points is a set of non-intersecting chords on `n` points. -/
+structure chord_configuration (n : ℕ) where
+  -- The chosen chords
+  chords : Finset (ℕ × ℕ)
+  -- All chords need to be in the correct structure and connect exactly two of the n points.
+  valid_indices : ∀ p ∈ chords, is_chord n p
+  -- No two chords can have a point in common
+  disjoint : ∀ p ∈ chords, ∀ q ∈ chords, p ≠ q →
+             ({p.1, p.2} : Finset ℕ) ∩ {q.1, q.2} = ∅
+  -- No two chords are intersecting
+  non_intersecting : ∀ p ∈ chords, ∀ q ∈ chords, ¬ are_chords_intersecting p q
+
+
+/-- `chord_configuration n` is a finite set. -/
+noncomputable instance (n : ℕ) : Fintype (chord_configuration n) := by
+
+  -- Define the set of all possible chords (on n points)
+  let valid_chords := ((range n).product (range n)).filter (fun x => x.1 < x.2)
+
+  apply Fintype.ofInjective
+    (fun c => (⟨c.chords, by
+      -- We prove that c.chords in the powerset of valid_chords is
+      rw [mem_powerset]
+      intro p hp
+
+      simp [valid_chords, mem_filter]
+      obtain ⟨h_lt, h_bound⟩ := c.valid_indices p hp
+      omega
+    ⟩ : ↥(valid_chords.powerset)))
+
+  -- Show injectivity
+  intro c1 c2 h
+  cases c1; cases c2
+  simp at *
+  exact h
+
+
+/-- Main theorem 6: Geometric interpreation - the number of valid chord_configurations on n points
+    is exactly the n-th Motzkin number. -/
+theorem motzkin_card_chord_configuration (n : ℕ) :
+    Fintype.card (chord_configuration n) = motzkin n := by
+
+  /- Sketch:
+    * Observe point 0 (or any fixed point):
+
+    * Case 1: Point 0 is not connected through a chord -> n-1 points are remaining and we get
+      motzkin (n-1) options
+
+    * Case 2: Point 0 is connected through a chord to point k>0 -> This divides the circle in two
+      separate areas, one with the points 1, 2, ..., k-1 and one with the points k+1, k+2, ..., n-1.
+      As no other chord can intersect the given chord (0, k), we can count the combinations as
+      motzkin (k-1) * motzkin (n-1-k). Summing up over all possible k, we get exactly the remaining
+      term in the motzkin recursion formula.
+  -/
+
+  sorry

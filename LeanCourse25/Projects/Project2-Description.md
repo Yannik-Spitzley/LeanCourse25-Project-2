@@ -1,4 +1,4 @@
-## Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers and generating function
+## Project 2: Motzkin numbers: Definition, linear recursion, connection to Catalan numbers, generating function and geometric interpreation
 
 ## Overview
 
@@ -52,6 +52,10 @@ as well as the explicit form given by
 $$
   (2 x^2 m(x) - (1-x)) ^2 = 1 - 2x - 3x^2.
 $$
+
+Lastly, we formalize the geometric interpretation: Modeling $ n $ points on a circle as indices from 0, 1, ..., n-1, we define chords between those points as an ordered pair of their indices. We give the main theorem that the number of non-intersecting chords on n points is exactly the n-th Motzkin number and outline the proof.
+
+
 
 
 ## AI Usage
