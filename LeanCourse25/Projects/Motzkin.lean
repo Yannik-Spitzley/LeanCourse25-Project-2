@@ -155,14 +155,6 @@ private lemma choose_mul_choose_sum (n r s : ℕ) :
       rw [ih (s + 1), ih s, add_comm, add_assoc r s 1, ← choose_succ_succ]
 
 
-/-- A technical lemma covering a binomial identity. This extends `choose_mul_choose_sum`.
-    `ToDo:` Remove this as its own lemma. -/
-private lemma binomial_identity (n a b : ℕ) :
-    ∑ i ∈ range n, choose i (2 * a) * choose (n-1-i) (2 * b) = choose n (2 * a + 2 * b + 1) := by
-
-  apply choose_mul_choose_sum
-
-
 /-- A technical lemma for an identity between binomial coefficients and the Catalan numbers. -/
 private lemma binomial_convolution (n a b : ℕ) :
     ∑ i ∈ range n, choose i (2 * a) * catalan a * (choose (n - 1 - i) (2 * b) * catalan b) =
@@ -175,7 +167,7 @@ private lemma binomial_convolution (n a b : ℕ) :
       grind
     -- Pull the constants out of the sum and simplify the remaining sum
     _ = catalan a * catalan b * choose n (2 * a + 2 * b + 1) := by
-      rw[← mul_sum, ← mul_sum, binomial_identity]
+      rw [← mul_sum, ← mul_sum, choose_mul_choose_sum]
       ring
 
 
